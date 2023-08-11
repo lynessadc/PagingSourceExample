@@ -11,10 +11,9 @@ import java.time.LocalDateTime
 import kotlin.math.max
 
 private const val STARTING_KEY = 0
-private const val LOAD_DELAY_MILLIS = 3_000L
+private const val LOAD_DELAY_MILLIS = 10_000L
 
 @RequiresApi(Build.VERSION_CODES.O)
-private val firstArticleCreatedTime = LocalDateTime.now()
 
 
 class ArticlePagingSource(
@@ -24,20 +23,18 @@ class ArticlePagingSource(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Article> {
-        Log.d("staticArrayList", staticArrayList.toString())
-        // If params.key is null, it is the first load, so we start loading with STARTING_KEY
         val startKey = params.key ?: STARTING_KEY
-
         // We fetch as many articles as hinted to by params.loadSize
         val range = startKey.until(staticArrayList.size)
 
         if (startKey >= staticArrayList.size) {
             Log.d("staticArrayList-startkey", startKey.toString())
-
             return LoadResult.Error(Exception("No more data available"))
         }
 
+        Log.d("staticArrayList", staticArrayList.toString())
         Log.d("staticArrayList", range.toString())
+        Log.d("staticArrayList-startkey", startKey.toString())
 
 
 
@@ -49,16 +46,7 @@ class ArticlePagingSource(
                     it.id,
                     it.title
                 )
-            }
-
-            /*range.map { number ->
-                Article(
-                    id = number,
-                    title = "Article $number",
-                    description = "This describes article $number",
-                    created = firstArticleCreatedTime.minusDays(number.toLong())
-                )
-            }*/,
+            },
             prevKey = when (startKey) {
                 STARTING_KEY -> null
                 else -> when (val prevKey = ensureValidKey(key = range.first - params.loadSize)) {
